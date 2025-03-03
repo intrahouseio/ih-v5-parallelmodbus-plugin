@@ -1,0 +1,6 @@
+{
+    "id":"parallelmodbus",
+    "description":"Parallel Modbus plugin",
+    "cross":true,
+	"version":"5.0.1"
+}
