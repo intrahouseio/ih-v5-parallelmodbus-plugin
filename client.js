@@ -60,11 +60,13 @@ class Client {
 
     } catch (err) {
       let charr = [];
-      this.polls.forEach(chitem => {
-        if (!this.channelsChstatus[chitem.id]) {
+      this.polls.forEach(poll => {
+        poll.ref.forEach(chitem => {
+          if (!this.channelsChstatus[chitem.id]) {          
+            this.channelsChstatus[chitem.id] = 1;
+          }
           charr.push({ id: chitem.id, chstatus: 1, title: chitem.title })
-          this.channelsChstatus[chitem.id] = 1;
-        }
+        })
       })
       if (charr.length > 0) this.plugin.sendData(charr);
       this.plugin.log(`Connection fail!`, 1);
