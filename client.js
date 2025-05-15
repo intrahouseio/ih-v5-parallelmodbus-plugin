@@ -64,8 +64,8 @@ class Client {
         poll.ref.forEach(chitem => {
           if (!this.channelsChstatus[chitem.id]) {          
             this.channelsChstatus[chitem.id] = 1;
-          }
-          charr.push({ id: chitem.id, chstatus: 1, title: chitem.title })
+            charr.push({ id: chitem.id, chstatus: 1, title: chitem.title })
+          }          
         })
       })
       if (charr.length > 0) this.plugin.sendData(charr);
