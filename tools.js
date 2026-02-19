@@ -151,9 +151,9 @@ function getRequests(channels, params) {
   }
 
   let result = [];
-  const maxReadLen = params.maxreadlen || 240;
+  let maxReadLen;
 
-  channels.sort(byorder('nodeip,nodeport,nodetransport,unitid,address'));
+  channels.sort(byorder('nodeip,nodeport,nodetransport,unitid,fcr,address'));
 
   const config = channels.filter(item => item.req);
   let i = 0;
@@ -162,6 +162,11 @@ function getRequests(channels, params) {
 
   while (i < config.length) {
     let item = config[i];
+    if (item.fcr == 1 || item.fcr == 2) {
+      maxReadLen = params.maxbitreadlen || 1000;
+    } else {
+      maxReadLen = params.maxreadlen || 125;
+    }
     if (!current || isDiffBlock(item, current) || getLengthAfterAdd(item, current) > maxReadLen) {
       // Записать предыдущий элемент
       if (current && length) {
@@ -212,9 +217,9 @@ function getPolls(channels, params) {
   }
 
   let result = [];
-  const maxReadLen = params.maxreadlen || 240;
+  let maxReadLen;
 
-  channels.sort(byorder('nodeip,nodeport,nodetransport,unitid,address'));
+  channels.sort(byorder('nodeip,nodeport,nodetransport,unitid,fcr,address'));
 
   // Выбираем переменные, которые можно читать группами, и формируем команды опроса
   // Формируем автоматические группы
@@ -225,6 +230,11 @@ function getPolls(channels, params) {
 
   while (i < config.length) {
     let item = config[i];
+    if (item.fcr == 1 || item.fcr == 2) {
+      maxReadLen = params.maxbitreadlen || 1000;
+    } else {
+      maxReadLen = params.maxreadlen || 125;
+    }
     if (!current || isDiffBlock(item, current) || getLengthAfterAdd(item, current) > maxReadLen) {
       // Записать предыдущий элемент
       if (current && length) {
@@ -277,6 +287,11 @@ function getPolls(channels, params) {
   const configMan = channels.filter(item => item.gr && item.grman && item.r && !item.req);
   configMan.sort(byorder('nodeip,nodeport,nodetransport,unitid,grmanstr,address,polltimefctr'));
   configMan.forEach(item => {
+    if (item.fcr == 1 || item.fcr == 2) {
+      maxReadLen = params.maxbitreadlen || 1000;
+    } else {
+      maxReadLen = params.maxreadlen || 125;
+    }
     if (!currentMan || isDiffBlockMan(item) || getLengthManAfterAdd(item) > maxReadLen) {
       // Записать предыдущий элемент
       if (currentMan && lengthMan) {
@@ -1174,8 +1189,8 @@ function getWriteRequests(channels, params) {
   if (!channels || !util.isArray(channels)) return [];
 
   let result = [];
-  const maxReadLen = params.maxreadlen || 124;
-  channels.sort(byorder('adrclass,address'));
+  let maxReadLen;
+  channels.sort(byorder('fcr,address'));
 
   const config = channels.filter(item => item.req);
   let i = 0;
@@ -1185,6 +1200,11 @@ function getWriteRequests(channels, params) {
 
   while (i < config.length) {
     let item = config[i];
+    if (item.fcr == 1 || item.fcr == 2) {
+      maxReadLen = params.maxbitreadlen || 1000;
+    } else {
+      maxReadLen = params.maxreadlen || 125;
+    }
     if (!current || isDiffWriteBlock(item, current, nextaddress) || getLengthAfterAdd(item, current) > maxReadLen) {
       // Записать предыдущий элемент
       if (current && length) {

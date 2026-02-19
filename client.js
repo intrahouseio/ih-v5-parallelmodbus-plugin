@@ -582,6 +582,24 @@ class Client {
     }
   }
 
+  // Новый метод: Останавливает polling и закрывает соединение
+  async stop() {
+    this.plugin.log(`Stopping client for ${this.clientParams.nodeip}:${this.clientParams.nodeport}`, 1);
+    this.isOpen = false;  // Блокируем reconnect и рекурсию в sendNext
+    // Очищаем очереди, чтобы не генерировать новые запросы
+    this.queue = [];
+    this.polls = [];
+    this.qToWrite = [];
+    this.qToWriteRead = [];
+    this.qToRead = [];
+    try {
+      await this.close();  // Закрываем Modbus
+    } catch (err) {
+      this.plugin.log(`Error during client stop: ${util.inspect(err)}`, 1);
+    }
+    this.plugin.log(`Client ${this.clientParams.nodeip}:${this.clientParams.nodeport} fully stopped`, 1);
+  }
+
   close() {
     return new Promise((resolve, reject) => {
       this.client.close(err => {

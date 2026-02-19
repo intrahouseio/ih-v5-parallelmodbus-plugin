@@ -61,5 +61,10 @@
     "uptime" : "Время работы",
     "error" : "Ошибка",
     "request" : "По Запросу",
-    "strlength": "Длина строки"
+    "strlength": "Длина строки",
+    "Enable": "Включить опрос",
+    "nodeip": "Ip адрес",
+    "nodeport": "Порт",
+    "activate": "Активировать",
+    "maxbitreadlen": "Max кол-во бит при чтении диапазона"
 }

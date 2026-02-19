@@ -61,5 +61,10 @@
     "uptime" : "Uptime",
     "error" : "Error",
     "request" : "On Request",
-    "strlength": "String length"
+    "strlength": "String length",
+    "Enable": "Enable Polling",
+    "nodeip": "Ip address",
+    "nodeport": "Port",
+    "activate": "Activate",
+    "maxbitreadlen": "Max number of bits when reading range"
 }
