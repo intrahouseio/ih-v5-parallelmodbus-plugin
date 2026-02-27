@@ -380,6 +380,10 @@
         {
           "id": "strascii",
           "title": "STRING ASCII"
+        },
+        {
+          "id": "strasciiwin",
+          "title": "STRING ASCII WIN1251"
         }
       ],
       "hide": "!data.p4.diffw",
@@ -390,7 +394,7 @@
       "title": "$strlength",
       "type": "input",
       "default": "1",
-      "hide": "data.p4.wvartype.id != 'strutf8' || data.p4.wvartype.id != 'strascii'"
+      "hide": "data.p4.wvartype.id != 'strutf8' || data.p4.wvartype.id != 'strascii' || data.p4.wvartype.id != 'strasciiwin'"
     },
     {
       "prop": "fcw",

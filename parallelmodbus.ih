@@ -2,5 +2,5 @@
     "id":"parallelmodbus",
     "description":"Parallel Modbus plugin",
     "cross":true,
-	"version":"5.0.4"
+	"version":"5.0.5"
 }

@@ -433,7 +433,9 @@ class Client {
     try {
       let val = item.value;
       if (fcw == 6 || fcw == 16) {
+        
         val = tools.writeValue(item.value, item);
+        this.plugin.log("val " + val)
         if (Buffer.isBuffer(val) && val.length > 2) fcw = 16;
 
         if (item.bit) {
@@ -480,7 +482,7 @@ class Client {
 
     if (this.qToWrite.length || allowSendNext) {
       if (!this.qToWrite.length) {
-        await sleep(this.params.polldelay || 1); // Интервал между запросами
+        await sleep(this.params.polldelay || 100); // Интервал между запросами
       }
       setImmediate(() => {
         this.sendNext();

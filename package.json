@@ -4,9 +4,9 @@
   "description": "Parallel Modbus Master plugin",
   "main": "modbus.js",
   "dependencies": {
+    "iconv-lite": "^0.7.2",
     "modbus-serial": "^8.0.1"
   },
-  "devDependencies": {},
   "author": "INTRA",
   "license": "MIT"
 }

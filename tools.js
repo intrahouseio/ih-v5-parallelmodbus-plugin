@@ -2,6 +2,7 @@
  * Функции разбора и формирования данных
  */
 const util = require('util');
+const iconv = require('iconv-lite');
 
 exports.formWriteObject = formWriteObject;
 exports.getVartype = getVartype;
@@ -32,11 +33,14 @@ function formWriteObject(chanItem, params) {
     nodeport: chanItem.nodeport,
     nodetransport: chanItem.nodetransport,
     unitid: chanItem.unitid,
-    value: Number(chanItem.value) || 0,
     command: chanItem.value || 'set',
     manbo: chanItem.manbo
   };
-
+  if (chanItem.vartype.includes("str")) {
+    res.value = chanItem.value;
+  } else {
+    res.value = Number(chanItem.value) || 0;
+  }
   if (chanItem.manbo) {
     res.manbo8 = chanItem.manbo8;
     res.manbo16 = chanItem.manbo16;
@@ -47,11 +51,13 @@ function formWriteObject(chanItem, params) {
   if (chanItem.diffw || (!chanItem.r && chanItem.wvartype && chanItem.wvartype)) {
     res.address = parseInt(chanItem.waddress);
     res.vartype = chanItem.wvartype;
+    res.strlength = chanItem.wstrlength;
     res.fcw = parseInt(chanItem.fcw);
     res.force = 0;
   } else {
     res.address = parseInt(chanItem.address);
     res.vartype = chanItem.vartype;
+    res.strlength = chanItem.strlength;
     res.fcw = parseInt(chanItem.fcw);
     res.force = chanItem.req ? 1 : 0;
   }
@@ -80,6 +86,10 @@ function getVartype(vt, params) {
     return vt + params.bo8;
   }
 
+  if (vt == "strascii" || vt == "strasciiwin" || vt == "strutf8") {
+    return vt + params.bo64;
+  }
+
   if (bits === '16') {
     return vt + params.bo16;
   }
@@ -101,6 +111,9 @@ function getVartypeMan(item) {
 
   if (vt === 'int8' || vt === 'uint8') {
     return vt + item.manbo8;
+  }
+  if (vt == "strascii" || vt == "strasciiwin" || vt == "strutf8") {
+    return vt + item.manbo64;
   }
 
   if (bits === '16') {
@@ -345,7 +358,7 @@ function getPolls(channels, params) {
         console.log('NO VARTYPE: ' + util.inspect(item));
       } else {
         result.push({
-          length: getVarLen(item.vartype),
+          length: getVarLen(item.vartype, item.strlength),
           nodeip: item.nodeip,
           nodeport: item.nodeport,
           nodetransport: item.nodetransport,
@@ -369,14 +382,14 @@ function getPolls(channels, params) {
   }
 
   function getLengthManAfterAdd(citem) {
-    return citem.address - currentMan.address + getVarLen(citem.vartype);
+    return citem.address - currentMan.address + getVarLen(citem.vartype, citem.strlength);
   }
   function isDiffBlock(citem) {
     return citem.nodeip != current.nodeip || citem.nodeport != current.nodeport || citem.unitid != current.unitid || citem.fcr != current.fcr;
   }
-  
+
   function getLengthAfterAdd(citem) {
-    return citem.address - current.address + getVarLen(citem.vartype);
+    return citem.address - current.address + getVarLen(citem.vartype, citem.strlength);
   }
 }
 
@@ -387,6 +400,7 @@ function getRefobj(item) {
     id: item.id,
     title,
     vartype: item.vartype,
+    strlength: item.strlength,
     widx: 0,
     curretries: 1,
     value: item.value
@@ -559,6 +573,72 @@ function parseBufferRead(buffer, item) {
       return buffer.readDoubleBE(offset * 2);
     case 'doublele':
       return buffer.readDoubleLE(offset * 2);
+    case 'strasciibe':
+      buf = Buffer.alloc(strlength);
+      buf = buffer.toString('ascii', offset * 2, offset * 2 + strlength);
+      return buf;
+    case 'strasciisw':
+      buf = Buffer.alloc(strlength);
+      buf = buffer.subarray(offset * 2, offset * 2 + strlength);
+      buf = reverseByte(buf);
+      buf = buf.toString('ascii');
+      return buf;
+    case 'strasciile':
+      buf = Buffer.alloc(strlength);
+      buf = buffer.subarray(offset * 2, offset * 2 + strlength);
+      return buf.reverse().toString('ascii');
+    case 'strasciisb':
+      buf = Buffer.alloc(strlength);
+      buf = buffer.subarray(offset * 2, offset * 2 + strlength);
+      buf.reverse();
+      buf = reverseByte(buf);
+      buf = buf.toString('ascii');
+      return buf;
+    case 'strasciiwinbe':
+      buf = Buffer.alloc(strlength);
+      buf = buffer.subarray(offset * 2, offset * 2 + strlength);
+      index = buf.findIndex((item) => item == 0);
+      return iconv.decode(buf.subarray(0, index), 'win1251');
+    case 'strasciiwinsw':
+      buf = Buffer.alloc(strlength);
+      buf = buffer.subarray(offset * 2, offset * 2 + strlength);
+      buf = reverseByte(buf);
+      index = buf.findIndex((item) => item == 0);
+      return iconv.decode(buf.subarray(0, index), 'win1251');
+    case 'strasciiwinle':
+      buf = Buffer.alloc(strlength);
+      buf = buffer.subarray(offset * 2, offset * 2 + strlength);
+      buf = buf.reverse()
+      index = buf.findIndex((item) => item == 0);
+      return iconv.decode(buf.subarray(0, index), 'win1251');
+    case 'strasciiwinsb':
+      buf = Buffer.alloc(strlength);
+      buf = buffer.subarray(offset * 2, offset * 2 + strlength);
+      buf.reverse();
+      buf = reverseByte(buf);
+      index = buf.findIndex((item) => item == 0);
+      return iconv.decode(buf.subarray(0, index), 'win1251');
+    case 'strutf8be':
+      buf = Buffer.alloc(strlength * 2);
+      buf = buffer.toString('utf-8', offset * 2, offset * 2 + strlength * 2);
+      return buf;
+    case 'strutf8sw':
+      buf = Buffer.alloc(strlength * 2);
+      buf = buffer.subarray(offset * 2, offset * 2 + strlength * 2);
+      buf = reverseByte(buf);
+      buf = buf.toString('utf-8');
+      return buf;
+    case 'strutf8le':
+      buf = Buffer.alloc(strlength * 2);
+      buf = buffer.subarray(offset * 2, offset * 2 + strlength * 2);
+      return buf.reverse().toString('utf-8');
+    case 'strutf8sb':
+      buf = Buffer.alloc(strlength * 2);
+      buf = buffer.subarray(offset * 2, offset * 2 + strlength * 2);
+      buf.reverse();
+      buf = reverseByte(buf);
+      buf = buf.toString('utf-8');
+      return buf;
     default:
       throw new Error(`Invalid type: ${vartype}`);
   }
@@ -1030,6 +1110,7 @@ function parseBufferWrite(value, item) {
 
 function writeValue(buffer, item) {
   let val = item.usek ? transformStoH(buffer, item) : buffer;
+  console.log('tools.writeValue val = ' + util.inspect(item))
   if (item.offset != undefined) {
     return val;
     // return parseBufferWrite(val, item);
@@ -1246,5 +1327,5 @@ function getWriteRequests(channels, params) {
 }
 
 function isDiffWriteBlock(citem, current, nextadr) {
-  return citem.nodeip != current.nodeip || citem.nodeport != current.nodeport || citem.unitid != current.unitid || citem.fcr != current.fcr  || citem.address != nextadr;
+  return citem.nodeip != current.nodeip || citem.nodeport != current.nodeport || citem.unitid != current.unitid || citem.fcr != current.fcr || citem.address != nextadr;
 }
