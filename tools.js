@@ -59,7 +59,8 @@ function formWriteObject(chanItem, params) {
     res.vartype = chanItem.vartype;
     res.strlength = chanItem.strlength;
     res.fcw = parseInt(chanItem.fcw);
-    res.force = chanItem.req ? 1 : 0;
+    //res.force = chanItem.req ? 1 : 0;
+    res.force = 1;
   }
   if (chanItem.parentoffset) res.address += parseInt(chanItem.parentoffset);
 
