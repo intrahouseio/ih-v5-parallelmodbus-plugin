@@ -102,7 +102,7 @@ class Client {
     } catch (err) {
       this.isOpen = false;
       this.consecutiveErrors ++;
-      this.sendAllChannelsBadStatus();
+      this.sendAllChannelsBadStatus(this.polls);
       if (this.allChannelsHaveBadStatus() && this.consecutiveErrors >= this.maxConsecutiveErrors && !this.isReconnecting) {
         await this.forceReconnect();
       }
@@ -111,10 +111,10 @@ class Client {
     }
   }
 
-  sendAllChannelsBadStatus() {
+  sendAllChannelsBadStatus(items) {
     let charr = [];
-    this.polls.forEach(poll => {
-      poll.ref.forEach(chitem => {
+    items.forEach(item => {
+      item.ref.forEach(chitem => {
         if (!this.channelsChstatus[chitem.id]) {
           this.channelsChstatus[chitem.id] = 1;
           charr.push({ id: chitem.id, chstatus: 1, title: chitem.title });
@@ -378,7 +378,7 @@ class Client {
         item.curretries++;
         this.queue.unshift(item);
       } else {
-        this.sendAllChannelsBadStatus();
+        this.sendAllChannelsBadStatus([item]);
       }
 
       throw err;

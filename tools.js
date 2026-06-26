@@ -225,7 +225,7 @@ function getRequests(channels, params) {
   return result;
 }
 
-function getPolls(channels, params) {
+function getPolls(channels, params,plugin) {
   if (!channels || !util.isArray(channels)) {
     return [];
   }
@@ -233,8 +233,8 @@ function getPolls(channels, params) {
   let result = [];
   let maxReadLen;
 
-  channels.sort(byorder('nodeip,nodeport,nodetransport,unitid,fcr,address'));
-
+  channels.sort(byorder('nodeip,nodeport,nodetransport,unitid,fcr,address','A', true));
+  plugin.log("sorted channels " + util.inspect(channels))
   // Выбираем переменные, которые можно читать группами, и формируем команды опроса
   // Формируем автоматические группы
   const config = channels.filter(item => item.gr && !item.grman && item.r && !item.req);
@@ -1203,7 +1203,7 @@ function getVarLen(vartype, strlength) {
  **/
 function byorder(ordernames, direction, parsingInt) {
   var arrForSort = [];
-  var dirflag = direction == 'D' ? -1 : 1; // ascending = 1, descending = -1;
+  var dirflag = direction == 'D' ? -1 : 1;
 
   if (ordernames && typeof ordernames == 'string') {
     arrForSort = ordernames.split(',');
@@ -1215,41 +1215,32 @@ function byorder(ordernames, direction, parsingInt) {
     }
 
     for (let i = 0; i < arrForSort.length; i++) {
-      let a;
-      let b;
-      let name = arrForSort[i];
-
-      a = o[name];
-      b = p[name];
-
-      if (a !== b) {
-        if (parsingInt) {
-          let astr = String(a);
-          let bstr = String(b);
-
-          if (!isNaN(parseInt(astr, 10)) && !isNaN(parseInt(bstr, 10))) {
-            return parseInt(astr, 10) < parseInt(bstr, 10) ? -1 * dirflag : 1 * dirflag;
+      let a = o[arrForSort[i]];
+      let b = p[arrForSort[i]];
+      
+      // Приведение к числу если нужно
+      if (parsingInt) {
+        let numA = Number(a);
+        let numB = Number(b);
+        if (!isNaN(numA) && !isNaN(numB)) {
+          if (numA !== numB) {
+            return numA < numB ? -1 * dirflag : 1 * dirflag;
           }
+          continue; // равны — идем к следующему полю
         }
-
-        // сравним как числа
-        if (!isNaN(Number(a)) && !isNaN(Number(b))) {
-          return Number(a) < Number(b) ? -1 * dirflag : 1 * dirflag;
-        }
-
-        // одинаковый тип, не числа
-        if (typeof a === typeof b) {
+      }
+      
+      // Обычное сравнение
+      if (a !== b) {
+        if (typeof a === 'number' && typeof b === 'number') {
           return a < b ? -1 * dirflag : 1 * dirflag;
         }
-
-        return typeof a < typeof b ? -1 * dirflag : 1 * dirflag;
+        return String(a) < String(b) ? -1 * dirflag : 1 * dirflag;
       }
     }
-
     return 0;
   };
 }
-
 // При записи
 function transformStoH(value, { ks0, ks, kh0, kh }) {
   value = parseInt(value);

@@ -134,7 +134,8 @@ module.exports = async function (plugin) {
 
     const polls_arr = tools.getPolls(
       channels.filter(item => item.r),
-      params
+      params,
+      plugin
     );
     polls = groupedByIpPort(polls_arr);
     plugin.log(`Polls updated = ${util.inspect(polls, null, 4)}`, 2);
