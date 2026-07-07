@@ -8,7 +8,7 @@ exports.formWriteObject = formWriteObject;
 exports.getVartype = getVartype;
 exports.getVartypeMan = getVartypeMan;
 exports.showAddress = showAddress;
-
+exports.getVarLen = getVarLen;
 exports.parseBufferRead = parseBufferRead;
 exports.parseBufferWrite = parseBufferWrite;
 exports.readValue = readValue;
@@ -34,7 +34,10 @@ function formWriteObject(chanItem, params) {
     nodetransport: chanItem.nodetransport,
     unitid: chanItem.unitid,
     command: chanItem.value || 'set',
-    manbo: chanItem.manbo
+    manbo: chanItem.manbo,
+    bit: chanItem.bit,
+    offset: chanItem.offset,
+    fcr: chanItem.fcr
   };
   if (chanItem.vartype.includes("str")) {
     res.value = chanItem.value;
@@ -1111,7 +1114,7 @@ function parseBufferWrite(value, item) {
 
 function writeValue(buffer, item) {
   let val = item.usek ? transformStoH(buffer, item) : buffer;
-  console.log('tools.writeValue val = ' + util.inspect(item))
+  //console.log('tools.writeValue val = ' + util.inspect(item))
   if (item.offset != undefined) {
     return val;
     // return parseBufferWrite(val, item);

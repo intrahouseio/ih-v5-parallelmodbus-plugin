@@ -394,10 +394,11 @@ class Client {
       if (fcw === 6 || fcw === 16) {
         val = tools.writeValue(item.value, item);
         if (Buffer.isBuffer(val) && val.length > 2) fcw = 16;
-
         if (item.bit) {
-          item.ref = [tools.getRefobj(item)];
-          const res = await this.modbusReadCommand(item.fcr, item.address, tools.getVarLen(item.vartype, item.strlength), item.ref);
+          //item.ref = [tools.getRefobj(item)];
+          item.ref = [];
+          
+          const res = await this.modbusReadCommand(item.fcr, item.address, tools.getVarLen(item.vartype, item.strlength), item.ref, item);
           if (res?.buffer) {
             val = res.buffer;
             const byte = item.offset < 8 ? 1 : 0;
@@ -433,8 +434,8 @@ class Client {
         if (Buffer.isBuffer(val) && val.length > 2) fcw = 16;
 
         if (item.bit) {
-          item.ref = [tools.getRefobj(item)];
-          const res = await this.modbusReadCommand(item.fcr, item.address, tools.getVarLen(item.vartype, item.strlength), item.ref);
+          item.ref = [];
+          const res = await this.modbusReadCommand(item.fcr, item.address, tools.getVarLen(item.vartype, item.strlength), item.ref, item);
           if (res?.buffer) {
             val = res.buffer;
             const byte = item.offset < 8 ? 1 : 0;
