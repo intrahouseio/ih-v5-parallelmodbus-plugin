@@ -393,6 +393,7 @@ class Client {
       let val = item.value;
       if (fcw === 6 || fcw === 16) {
         val = tools.writeValue(item.value, item);
+        this.plugin.log("val " + util.inspect(val))
         if (Buffer.isBuffer(val) && val.length > 2) fcw = 16;
         if (item.bit) {
           //item.ref = [tools.getRefobj(item)];
@@ -408,7 +409,7 @@ class Client {
         }
       }
 
-      this.plugin.log(`WRITE: ${item.nodeip}:${item.nodeport} FC=${fcw} addr=${tools.showAddress(item.address)}`, 1);
+      this.plugin.log(`WRITE: ${item.nodeip}:${item.nodeport} FC=${fcw} addr=${tools.showAddress(item.address)} value=${util.inspect(val)}`, 1);
       await this.modbusWriteCommand(fcw, item.address, val);
 
       if (item.force) this.plugin.sendData([{ id: item.id, value: item.value }]);

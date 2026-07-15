@@ -35,8 +35,6 @@ function formWriteObject(chanItem, params) {
     unitid: chanItem.unitid,
     command: chanItem.value || 'set',
     manbo: chanItem.manbo,
-    bit: chanItem.bit,
-    offset: chanItem.offset,
     fcr: chanItem.fcr
   };
   if (chanItem.vartype.includes("str")) {
@@ -50,6 +48,11 @@ function formWriteObject(chanItem, params) {
     res.manbo32 = chanItem.manbo32;
     res.manbo64 = chanItem.manbo64;
   }
+  
+    if (chanItem.bit) {
+      res.offset = chanItem.offset;
+      res.bit = chanItem.bit;
+    }
 
   if (chanItem.diffw || (!chanItem.r && chanItem.wvartype && chanItem.wvartype)) {
     res.address = parseInt(chanItem.waddress);
@@ -1115,10 +1118,10 @@ function parseBufferWrite(value, item) {
 function writeValue(buffer, item) {
   let val = item.usek ? transformStoH(buffer, item) : buffer;
   //console.log('tools.writeValue val = ' + util.inspect(item))
-  if (item.offset != undefined) {
+  /*if (item.offset != undefined) {
     return val;
     // return parseBufferWrite(val, item);
-  }
+  }*/
   return parseBufferWrite(val, item);
 }
 
