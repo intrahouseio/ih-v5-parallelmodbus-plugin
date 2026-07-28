@@ -48,11 +48,11 @@ function formWriteObject(chanItem, params) {
     res.manbo32 = chanItem.manbo32;
     res.manbo64 = chanItem.manbo64;
   }
-  
-    if (chanItem.bit) {
-      res.offset = chanItem.offset;
-      res.bit = chanItem.bit;
-    }
+
+  if (chanItem.bit) {
+    res.offset = chanItem.offset;
+    res.bit = chanItem.bit;
+  }
 
   if (chanItem.diffw || (!chanItem.r && chanItem.wvartype && chanItem.wvartype)) {
     res.address = parseInt(chanItem.waddress);
@@ -231,7 +231,7 @@ function getRequests(channels, params) {
   return result;
 }
 
-function getPolls(channels, params,plugin) {
+function getPolls(channels, params, plugin) {
   if (!channels || !util.isArray(channels)) {
     return [];
   }
@@ -239,7 +239,7 @@ function getPolls(channels, params,plugin) {
   let result = [];
   let maxReadLen;
 
-  channels.sort(byorder('nodeip,nodeport,nodetransport,unitid,fcr,address','A', true));
+  channels.sort(byorder('nodeip,nodeport,nodetransport,unitid,fcr,address', 'A', true));
   plugin.log("sorted channels " + util.inspect(channels))
   // Выбираем переменные, которые можно читать группами, и формируем команды опроса
   // Формируем автоматические группы
@@ -448,208 +448,6 @@ function getPollArray(polls) {
   }, []);
 }
 
-function parseBufferRead(buffer, item) {
-  let buf;
-  let i1;
-  let i2;
-  let offset = item.widx;
-  let vartype = item.vartype;
-
-  switch (vartype) {
-    case 'bool':
-      return getBitValue(buffer, offset);
-    case 'uint8be':
-      return buffer.readUInt8(offset * 2 + 1);
-    case 'uint8le':
-      return buffer.readUInt8(offset * 2);
-    case 'int8be':
-      return buffer.readInt8(offset * 2 + 1);
-    case 'int8le':
-      return buffer.readInt8(offset * 2);
-    case 'uint16be':
-      return buffer.readUInt16BE(offset * 2);
-    case 'uint16le':
-      return buffer.readUInt16LE(offset * 2);
-    case 'int16be':
-      return buffer.readInt16BE(offset * 2);
-    case 'int16le':
-      return buffer.readInt16LE(offset * 2);
-    case 'uint32be':
-      return buffer.readUInt32BE(offset * 2);
-    case 'uint32le':
-      return buffer.readUInt32LE(offset * 2);
-    case 'uint32sw':
-      // buf = new Buffer(4);
-      buf = Buffer.alloc(4);
-      buf[0] = buffer[offset * 2 + 2];
-      buf[1] = buffer[offset * 2 + 3];
-      buf[2] = buffer[offset * 2 + 0];
-      buf[3] = buffer[offset * 2 + 1];
-      return buf.readUInt32BE(0);
-    case 'uint32sb':
-      buf = Buffer.alloc(4);
-      buf[0] = buffer[offset * 2 + 1];
-      buf[1] = buffer[offset * 2 + 0];
-      buf[2] = buffer[offset * 2 + 3];
-      buf[3] = buffer[offset * 2 + 2];
-      return buf.readUInt32BE(0);
-    case 'int32be':
-      return buffer.readInt32BE(offset * 2);
-    case 'int32le':
-      return buffer.readInt32LE(offset * 2);
-    case 'int32sw':
-      buf = Buffer.alloc(4);
-      buf[0] = buffer[offset * 2 + 2];
-      buf[1] = buffer[offset * 2 + 3];
-      buf[2] = buffer[offset * 2 + 0];
-      buf[3] = buffer[offset * 2 + 1];
-      return buf.readInt32BE(0);
-    case 'int32sb':
-      buf = Buffer.alloc(4);
-      buf[0] = buffer[offset * 2 + 1];
-      buf[1] = buffer[offset * 2 + 0];
-      buf[2] = buffer[offset * 2 + 3];
-      buf[3] = buffer[offset * 2 + 2];
-      return buf.readInt32BE(0);
-    case 'uint64be':
-      return Number(buffer.readBigUInt64BE(offset * 2));
-    case 'uint64sw':
-      buf = Buffer.alloc(8);
-      //B7B8B5B6B3B4B1B2
-      buf[0] = buffer[offset * 2 + 6];
-      buf[1] = buffer[offset * 2 + 7];
-      buf[2] = buffer[offset * 2 + 4];
-      buf[3] = buffer[offset * 2 + 5];
-      buf[4] = buffer[offset * 2 + 2];
-      buf[5] = buffer[offset * 2 + 3];
-      buf[6] = buffer[offset * 2 + 0];
-      buf[7] = buffer[offset * 2 + 1];
-      return Number(buf.readBigUInt64BE())
-    case 'uint64le':
-      buf = Buffer.alloc(8);
-      buf = buffer.subarray(offset * 2, offset * 2 + 8);
-      buf.reverse();
-      return Number(buf.readBigUInt64BE());
-    case 'uint64sb':
-      buf = Buffer.alloc(8);
-      buf = buffer.subarray(offset * 2, offset * 2 + 8);
-      buf.reverse();
-      buf = reverseByte(buf);
-      return Number(buf.readBigUInt64BE());
-    case 'int64be':
-      return Number(buffer.readBigInt64BE(offset * 2));
-    case 'int64sw':
-      buf = Buffer.alloc(8);
-      //B7B8B5B6B3B4B1B2
-      buf[0] = buffer[offset * 2 + 6];
-      buf[1] = buffer[offset * 2 + 7];
-      buf[2] = buffer[offset * 2 + 4];
-      buf[3] = buffer[offset * 2 + 5];
-      buf[4] = buffer[offset * 2 + 2];
-      buf[5] = buffer[offset * 2 + 3];
-      buf[6] = buffer[offset * 2 + 0];
-      buf[7] = buffer[offset * 2 + 1];
-      return Number(buf.readBigInt64BE());
-    case 'int64le':
-      return Number(buffer.readBigInt64LE(offset * 2));
-    case 'int64sb':
-      buf = Buffer.alloc(8);
-      buf = buffer.subarray(offset * 2, offset * 2 + 8);
-      buf.reverse();
-      buf = reverseByte(buf);
-      return Number(buf.readBigInt64BE());
-    case 'floatbe':
-      return buffer.readFloatBE(offset * 2);
-    case 'floatle':
-      return buffer.readFloatLE(offset * 2);
-    case 'floatsw':
-      buf = Buffer.alloc(4);
-      buf[0] = buffer[offset * 2 + 2];
-      buf[1] = buffer[offset * 2 + 3];
-      buf[2] = buffer[offset * 2 + 0];
-      buf[3] = buffer[offset * 2 + 1];
-      return buf.readFloatBE(0);
-    case 'floatsb':
-      buf = Buffer.alloc(4);
-      buf[0] = buffer[offset * 2 + 1];
-      buf[1] = buffer[offset * 2 + 0];
-      buf[2] = buffer[offset * 2 + 3];
-      buf[3] = buffer[offset * 2 + 2];
-      return buf.readFloatBE(0);
-    case 'doublebe':
-      return buffer.readDoubleBE(offset * 2);
-    case 'doublele':
-      return buffer.readDoubleLE(offset * 2);
-    case 'strasciibe':
-      buf = Buffer.alloc(strlength);
-      buf = buffer.toString('ascii', offset * 2, offset * 2 + strlength);
-      return buf;
-    case 'strasciisw':
-      buf = Buffer.alloc(strlength);
-      buf = buffer.subarray(offset * 2, offset * 2 + strlength);
-      buf = reverseByte(buf);
-      buf = buf.toString('ascii');
-      return buf;
-    case 'strasciile':
-      buf = Buffer.alloc(strlength);
-      buf = buffer.subarray(offset * 2, offset * 2 + strlength);
-      return buf.reverse().toString('ascii');
-    case 'strasciisb':
-      buf = Buffer.alloc(strlength);
-      buf = buffer.subarray(offset * 2, offset * 2 + strlength);
-      buf.reverse();
-      buf = reverseByte(buf);
-      buf = buf.toString('ascii');
-      return buf;
-    case 'strasciiwinbe':
-      buf = Buffer.alloc(strlength);
-      buf = buffer.subarray(offset * 2, offset * 2 + strlength);
-      index = buf.findIndex((item) => item == 0);
-      return iconv.decode(buf.subarray(0, index), 'win1251');
-    case 'strasciiwinsw':
-      buf = Buffer.alloc(strlength);
-      buf = buffer.subarray(offset * 2, offset * 2 + strlength);
-      buf = reverseByte(buf);
-      index = buf.findIndex((item) => item == 0);
-      return iconv.decode(buf.subarray(0, index), 'win1251');
-    case 'strasciiwinle':
-      buf = Buffer.alloc(strlength);
-      buf = buffer.subarray(offset * 2, offset * 2 + strlength);
-      buf = buf.reverse()
-      index = buf.findIndex((item) => item == 0);
-      return iconv.decode(buf.subarray(0, index), 'win1251');
-    case 'strasciiwinsb':
-      buf = Buffer.alloc(strlength);
-      buf = buffer.subarray(offset * 2, offset * 2 + strlength);
-      buf.reverse();
-      buf = reverseByte(buf);
-      index = buf.findIndex((item) => item == 0);
-      return iconv.decode(buf.subarray(0, index), 'win1251');
-    case 'strutf8be':
-      buf = Buffer.alloc(strlength * 2);
-      buf = buffer.toString('utf-8', offset * 2, offset * 2 + strlength * 2);
-      return buf;
-    case 'strutf8sw':
-      buf = Buffer.alloc(strlength * 2);
-      buf = buffer.subarray(offset * 2, offset * 2 + strlength * 2);
-      buf = reverseByte(buf);
-      buf = buf.toString('utf-8');
-      return buf;
-    case 'strutf8le':
-      buf = Buffer.alloc(strlength * 2);
-      buf = buffer.subarray(offset * 2, offset * 2 + strlength * 2);
-      return buf.reverse().toString('utf-8');
-    case 'strutf8sb':
-      buf = Buffer.alloc(strlength * 2);
-      buf = buffer.subarray(offset * 2, offset * 2 + strlength * 2);
-      buf.reverse();
-      buf = reverseByte(buf);
-      buf = buf.toString('utf-8');
-      return buf;
-    default:
-      throw new Error(`Invalid type: ${vartype}`);
-  }
-}
 
 function reverseByte(buf) {
   for (let i = 1; i < buf.length; i += 2) {
@@ -790,6 +588,17 @@ function parseBufferRead(buffer, item) {
       return buffer.readDoubleBE(offset * 2);
     case 'doublele':
       return buffer.readDoubleLE(offset * 2);
+    case 'doublesw':
+      buf = Buffer.alloc(8);
+      buf = buffer.subarray(offset * 2, offset * 2 + 8);
+      buf = reverseByte(buf);
+      return buf.readDoubleBE(0);
+    case 'doublesb':
+      buf = Buffer.alloc(8);
+      buf = buffer.subarray(offset * 2, offset * 2 + 8);
+      buf.reverse();
+      buf = reverseByte(buf);
+      return Number(buf.readDoubleBE(0));
     case 'strasciibe':
       buf = Buffer.alloc(strlength);
       buf = buffer.toString('ascii', offset * 2, offset * 2 + strlength);
@@ -1019,6 +828,14 @@ function parseBufferWrite(value, item) {
       buffer = Buffer.alloc(8);
       buffer.writeDoubleLE(value, 0);
       break;
+    case 'doublesb':
+      buffer = Buffer.alloc(8);
+      buffer.writeDoubleBE(value, 0);
+      break;
+    case 'doublesw':
+      buffer = Buffer.alloc(8);
+      buffer.writeDoubleBE(value, 0);
+      break;
     case 'strasciibe':
       a0 = Buffer.from(value, 'ascii');
       if (a0.length % 2 == 1) {
@@ -1177,6 +994,8 @@ function getVarLen(vartype, strlength) {
     case 'uint64le':
     case 'doublebe':
     case 'doublele':
+    case 'doublesw':
+    case 'doublesb':
       return 4;
 
     case 'strasciibe':
@@ -1223,7 +1042,7 @@ function byorder(ordernames, direction, parsingInt) {
     for (let i = 0; i < arrForSort.length; i++) {
       let a = o[arrForSort[i]];
       let b = p[arrForSort[i]];
-      
+
       // Приведение к числу если нужно
       if (parsingInt) {
         let numA = Number(a);
@@ -1235,7 +1054,7 @@ function byorder(ordernames, direction, parsingInt) {
           continue; // равны — идем к следующему полю
         }
       }
-      
+
       // Обычное сравнение
       if (a !== b) {
         if (typeof a === 'number' && typeof b === 'number') {
